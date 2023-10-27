@@ -21,9 +21,12 @@ class Continuation(Sequence):
         self, model, max_tokens: Optional[int] = None, stop: Union[str, List[str]] = []
     ):
         super().__init__(model, max_tokens)
-        self.eos_token_id = torch.tensor(
-            [self.model.tokenizer.eos_token_id], device=self.device
-        )
+        try:
+            self.eos_token_id = torch.tensor(
+                [self.model.tokenizer.eos_token_id], device=self.device
+            )
+        except AttributeError:
+            self.eos_token_id = None
 
         if isinstance(stop, str):
             stop = [stop]

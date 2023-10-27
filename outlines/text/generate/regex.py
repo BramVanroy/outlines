@@ -28,11 +28,14 @@ class Regex(Continuation):
     def __init__(self, model, regex_string: str, max_tokens: Optional[int]):
         super().__init__(model, max_tokens)
 
-        vocabulary = model.tokenizer.vocabulary
-        sorted_vocabulary = [
-            model.tokenizer.convert_token_to_string(k)
-            for k, v in sorted(vocabulary.items(), key=lambda kv: kv[1])
-        ]
+        try:
+            vocabulary = model.tokenizer.vocabulary
+            sorted_vocabulary = [
+                model.tokenizer.convert_token_to_string(k)
+                for k, v in sorted(vocabulary.items(), key=lambda kv: kv[1])
+            ]
+        except AttributeError:
+            pass
 
         regex_pattern = interegular.parse_pattern(regex_string)
         self.regex_fsm = regex_pattern.to_fsm().reduce()

@@ -55,6 +55,16 @@ class TransformersTokenizer(Tokenizer):
 
         kwargs.setdefault("padding_side", "left")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, **kwargs)
+        self.max_length = None
+        if not self.tokenizer.model_max_length or self.tokenizer.model_max_length > 8096:
+            # Only trained to max 512
+            if model_name in ["yhavinga/gpt-neo-125M-dutch", "yhavinga/gpt2-large-dutch", "yhavinga/gpt2-medium-dutch"]:
+                self.max_length = 512
+            elif "llama2" in model_name.lower().replace("-", ""):  # Ignore differences like "Llama2", "llama-2"
+                self.max_length = 4096
+        else:
+            self.max_length = self.tokenizer.model_max_length
+        print("Setting max length to", self.max_length, f"for {model_name}")
         self.eos_token_id = self.tokenizer.eos_token_id
         self.eos_token = self.tokenizer.eos_token
 
@@ -72,7 +82,7 @@ class TransformersTokenizer(Tokenizer):
     ) -> Tuple[torch.LongTensor, torch.LongTensor]:
         kwargs["padding"] = True
         kwargs["return_tensors"] = "pt"
-        output = self.tokenizer(prompt, **kwargs)
+        output = self.tokenizer(prompt, truncation=True, max_length=self.max_length, **kwargs)
         return output["input_ids"], output["attention_mask"]
 
     def decode(self, token_ids: torch.LongTensor) -> List[str]:

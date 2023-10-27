@@ -20,10 +20,14 @@ class Sequence:
         """
         self.model = model
         self.device = model.device if hasattr(model, "device") else "cpu"
+
         self.max_tokens = max_tokens
-        self.pad_token_id = torch.tensor(
-            model.tokenizer.pad_token_id, device=model.device
-        )
+        try:
+            self.pad_token_id = torch.tensor(
+                model.tokenizer.pad_token_id, device=model.device
+            )
+        except AttributeError:
+            self.pad_token_id = None
 
     def create_proposal(
         self, generated_token_ids: torch.LongTensor, logits: torch.DoubleTensor
